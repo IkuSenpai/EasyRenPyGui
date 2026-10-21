@@ -1,0 +1,44 @@
+name: Ren'Py compatibility
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint with Ren'Py ${{ matrix.renpy }}
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        renpy: ['8.2.0', '8.5.3']
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install headless display
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth
+
+      - name: Download Ren'Py SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/renpy"
+          curl --fail --location --retry 3 \
+            "https://www.renpy.org/dl/${{ matrix.renpy }}/renpy-${{ matrix.renpy }}-sdk.tar.bz2" \
+            --output "$RUNNER_TEMP/renpy-sdk.tar.bz2"
+          tar -xjf "$RUNNER_TEMP/renpy-sdk.tar.bz2" -C "$RUNNER_TEMP/renpy"
+          sdk_dir="$(find "$RUNNER_TEMP/renpy" -mindepth 1 -maxdepth 1 -type d -name 'renpy-*' -print -quit)"
+          test -n "$sdk_dir" && test -f "$sdk_dir/renpy.sh"
+          printf 'RENPY_SDK_DIR=%s\n' "$sdk_dir" >> "$GITHUB_ENV"
+
+      - name: Check project script (lint)
+        env:
+          SDL_AUDIODRIVER: dummy
+        run: xvfb-run -a bash "$RENPY_SDK_DIR/renpy.sh" "$GITHUB_WORKSPACE" lint --error-code
