@@ -38,6 +38,17 @@ jobs:
           test -n "$sdk_dir" && test -f "$sdk_dir/renpy.sh"
           printf 'RENPY_SDK_DIR=%s\n' "$sdk_dir" >> "$GITHUB_ENV"
 
+      - name: Provide CI-only sample images
+        shell: bash
+        run: |
+          # The starter scene intentionally uses names with no image files.
+          # Supply simple images only for lint; do not commit placeholders
+          # that would override Ren'Py's sample-scene behavior.
+          cat > "$GITHUB_WORKSPACE/game/_ci_sample_images.rpy" <<'RENPY'
+          image bg room = Solid("#404050")
+          image eileen happy = Solid("#808090")
+          RENPY
+
       - name: Check project script (lint)
         env:
           SDL_AUDIODRIVER: dummy
