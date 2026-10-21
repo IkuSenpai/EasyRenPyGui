@@ -131,7 +131,7 @@ screen nvl(dialogue, items=None):
 
         ## Displays the menu, if given. The menu may be displayed incorrectly if
         ## config.narrator_menu is set to True.
-        for i in items:
+        for i in (items or ()):
 
             textbutton i.caption:
                 action i.action
@@ -222,6 +222,12 @@ screen bubble(who, what):
 
         text what:
             id "what"
+
+        ## Optional click-to-continue displayable for Ren'Py 8.5+.
+        ## Remains inert when the engine does not supply one.
+        default ctc = None
+        showif ctc:
+            add ctc
 
 style bubble_window:
     is empty
