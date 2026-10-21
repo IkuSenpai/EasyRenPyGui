@@ -53,3 +53,13 @@ jobs:
         env:
           SDL_AUDIODRIVER: dummy
         run: xvfb-run -a bash "$RENPY_SDK_DIR/renpy.sh" "$GITHUB_WORKSPACE" lint --error-code
+
+      - name: Run Ren'Py 8.5.3 GUI smoke test
+        if: matrix.renpy == '8.5.3'
+        env:
+          SDL_AUDIODRIVER: dummy
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp tests/renpy85_smoke.rpy game/ci_testcases.rpy
+          xvfb-run -a bash "$RENPY_SDK_DIR/renpy.sh" "$GITHUB_WORKSPACE" test starter_gui_smoke --report-detailed
